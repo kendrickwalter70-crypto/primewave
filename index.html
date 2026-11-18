@@ -1,0 +1,597 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Prime Wave Delivery</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Inter:wght@400;500;600&display=swap"><style>body{margin:0}</style><style id="app-style">
+/* Layout: navy header band with the wave logo, one centered column below. Home = tracking box, results, help. Hidden owner area = shipments list, shipment form and settings. */
+:root {
+  --bg: #f1f5f9; --surface: #ffffff; --fg: #0f1f33; --muted: #566579; --line: #d8e0ea;
+  --brand: #0a2540; --brand-fg: #ffffff; --accent: #0e8fb0; --accent-fg: #ffffff; --accent-soft: #d9f0f7;
+  --warn: #9a5d00; --warn-soft: #fbefd2; --bad: #b3261e; --bad-soft: #fbe3e1;
+  --font-display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #09131f; --surface: #112033; --fg: #e6eef7; --muted: #92a4b8; --line: #24384e;
+    --brand: #06182b; --accent: #38bddf; --accent-fg: #04202b; --accent-soft: #0f3342;
+    --warn: #f0b84a; --warn-soft: #3a2d10; --bad: #ff8a80; --bad-soft: #3b1815; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #09131f; --surface: #112033; --fg: #e6eef7; --muted: #92a4b8; --line: #24384e;
+  --brand: #06182b; --accent: #38bddf; --accent-fg: #04202b; --accent-soft: #0f3342;
+  --warn: #f0b84a; --warn-soft: #3a2d10; --bad: #ff8a80; --bad-soft: #3b1815; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5; padding: 0; }
+.gut { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.top { background: var(--brand); color: var(--brand-fg); }
+.top .in { max-width: 760px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 14px; flex-wrap: wrap; }
+.logo { display: flex; align-items: center; gap: 11px; background: none; border: 0; color: inherit; padding: 0; cursor: pointer; text-align: left; }
+.logo svg { width: 40px; height: 40px; flex: none; }
+.logo .nm { display: flex; flex-direction: column; line-height: 1; }
+.logo b { font-family: var(--font-display); font-size: 21px; font-weight: 700; letter-spacing: -.01em; }
+.logo small { font-size: 10px; letter-spacing: .32em; margin-top: 4px; opacity: .75; font-weight: 600; }
+.nav { display: flex; gap: 6px; }
+.nav button { font: inherit; font-size: 14px; font-weight: 500; color: inherit; background: none; border: 0; padding: 8px 12px; border-radius: 8px; cursor: pointer; opacity: .85; }
+.nav button:hover { background: rgba(255,255,255,.1); opacity: 1; }
+.main { max-width: 760px; margin: 0 auto; padding-block: 26px 40px; display: flex; flex-direction: column; gap: 20px; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(30px, 8vw, 42px); line-height: 1.05; margin: 0 0 8px; text-wrap: balance; letter-spacing: -.01em; }
+h2 { font-family: var(--font-display); font-size: 22px; margin: 0; }
+h3 { font-family: var(--font-display); font-size: 16px; margin: 0 0 12px; }
+.lead { color: var(--muted); margin: 0; max-width: 52ch; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid .full { grid-column: 1 / -1; }
+@media (max-width: 480px) { .grid { grid-template-columns: 1fr; } }
+label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; min-width: 0; }
+input, select, textarea { font: inherit; font-weight: 400; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px 13px; min-width: 0; width: 100%; }
+textarea { min-height: 90px; resize: vertical; }
+input:focus-visible, button:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn { font: inherit; font-weight: 600; background: var(--accent); color: var(--accent-fg); border: 0; border-radius: 10px; padding: 12px 18px; cursor: pointer; }
+.btn:hover { filter: brightness(1.07); }
+.btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+.btn.danger { background: var(--bad-soft); color: var(--bad); }
+.btn.small { padding: 7px 12px; font-size: 13px; }
+.btn:disabled { opacity: .5; cursor: default; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.bar .grow { flex: 1; }
+.link { font: inherit; font-size: 13px; background: none; border: 0; padding: 0; color: var(--muted); text-decoration: underline; cursor: pointer; }
+.hint { font-size: 13px; color: var(--muted); margin: 0; }
+.err { background: var(--bad-soft); color: var(--bad); border-radius: 10px; padding: 12px 14px; font-weight: 500; }
+.ok { background: var(--accent-soft); color: var(--accent); border-radius: 10px; padding: 12px 14px; font-weight: 500; }
+.warnbox { background: var(--warn-soft); color: var(--warn); border-radius: 10px; padding: 12px 14px; font-weight: 500; }
+.head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.tn { font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.meaning { margin: 14px 0 0; padding: 12px 14px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); font-size: 14px; }
+.sub { color: var(--muted); font-size: 13px; margin: 2px 0 0; }
+.pill { font-size: 12px; font-weight: 600; padding: 5px 11px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.pill.transit { background: var(--warn-soft); color: var(--warn); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.steps { list-style: none; padding: 0; margin: 22px 0 4px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.steps li { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; font-size: 12px; color: var(--muted); position: relative; min-width: 0; }
+.steps li::before { content: ""; position: absolute; top: 11px; left: -50%; width: 100%; height: 3px; background: var(--line); }
+.steps li:first-child::before { display: none; }
+.steps li.done::before, .steps li.now::before { background: var(--accent); }
+.dot { width: 24px; height: 24px; border-radius: 50%; background: var(--surface); border: 3px solid var(--line); position: relative; z-index: 1; }
+.done .dot { background: var(--accent); border-color: var(--accent); }
+.now .dot { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.now, .done { color: var(--fg); }
+.now { font-weight: 600; }
+.tl { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px; }
+.tl li { display: grid; grid-template-columns: 112px 1fr; gap: 12px; font-size: 14px; }
+.tl time { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.tl .where { color: var(--muted); font-size: 13px; }
+@media (max-width: 420px) { .tl li { grid-template-columns: 1fr; gap: 2px; } }
+.evs { display: flex; flex-direction: column; gap: 12px; }
+.ev { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ev .full { grid-column: 1 / -1; }
+.ev .row { display: flex; justify-content: flex-end; }
+@media (max-width: 480px) { .ev { grid-template-columns: 1fr; } }
+.meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; font-size: 14px; margin: 18px 0 0; }
+@media (max-width: 520px) { .meta { grid-template-columns: 1fr 1fr; } }
+.meta dt { color: var(--muted); font-size: 12px; }
+.meta dd { margin: 2px 0 0; font-weight: 500; overflow-wrap: anywhere; }
+.olist { list-style: none; margin: 0; padding: 0; }
+.olist li { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 0; border-top: 1px solid var(--line); }
+.olist li:first-child { border-top: 0; padding-top: 0; }
+.olist .who { flex: 1; min-width: 150px; }
+.olist .who b { font-weight: 600; }
+.olist .who span { display: block; color: var(--muted); font-size: 13px; }
+.foot { color: var(--muted); font-size: 13px; }
+.foot button { font: inherit; color: inherit; background: none; border: 0; padding: 6px 4px; cursor: default; }
+.lab { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; margin: 18px 0 4px; }
+.lab.first { margin-top: 0; }
+.bigv { font-family: var(--font-display); font-size: clamp(28px, 8vw, 36px); line-height: 1.1; }
+.statv { font-size: 20px; font-weight: 500; }
+.statv.warn { color: var(--warn); } .statv.bad { color: var(--bad); }
+.vs { list-style: none; margin: 26px 0 0; padding: 0; }
+.vs li { display: flex; align-items: stretch; gap: 16px; min-height: 64px; }
+.vs .rail { width: 44px; flex: none; position: relative; display: flex; align-items: center; justify-content: center; }
+.vs .rail::before { content: ""; position: absolute; left: 50%; margin-left: -4px; width: 8px; top: 0; bottom: 0; background: var(--line); }
+.vs li:first-child .rail::before { top: 50%; border-radius: 8px 8px 0 0; }
+.vs li:last-child .rail::before { bottom: 50%; border-radius: 0 0 8px 8px; }
+.vs .done .rail::before { background: var(--accent); }
+.vs .now .rail::before { background: linear-gradient(var(--accent) 50%, var(--line) 50%); }
+.vs .dot { position: relative; width: 10px; height: 10px; border-radius: 50%; background: #fff; }
+.vs .todo .dot { background: var(--muted); opacity: .6; }
+.vs .big { position: relative; width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; }
+.vs .now { background: var(--bg); border-radius: 44px 22px 22px 44px; }
+.vs .txt { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 10px 12px 10px 0; min-width: 0; }
+.vs .t { font-weight: 700; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+.vs .todo .t { color: var(--muted); }
+.vs .s { font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+.vs .s.i { font-style: italic; font-size: 13px; }
+.srow { display: flex; gap: 8px; align-items: center; }
+.srow input { flex: 1; }
+.olist select.qs { width: auto; border: 0; padding: 6px 10px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.srow .btn { flex: none; }
+@media (prefers-reduced-motion: no-preference) { .rise { animation: rise .3s ease-out both; } @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } } }
+</style></head><body><div id="root"></div><script type="application/json" id="state">{"settings":{"phone":"","email":"support@primewavedelivery.com","steps":[{"id":"1","name":"PACKAGE RECEIVED BY PRIME WAVE"},{"id":"2","name":"IN TRANSIT"},{"id":"3","name":"OUT FOR DELIVERY"},{"id":"4","name":"DELIVERED"}],"labels":{"special":{"onhold":"ON HOLD","exception":"Delivery exception","returned":"Returned to sender"}}},"pub":[{"s":"3uD4Ed88IP89JPNVOrLKAw==","i":"ZcHKqrqRBC5GbhOU","c":"8rkGPKGMV8ixNrNrqb2vQc9n5W+42OIsLn7Y21P7yok/+ydtKVZMFoQxxYVbilqhqvHhWUovN2eWmaLsIPuYE0merd68Yt1vIGvzgC/pembgBiJtSNFyl642Sq7iUTnyuCsSifs9vaSab9iYj1nEqdV5Uz7zCNS7j550l/eTLTunTwmnJV4oa7ScQcff0sEdtuKabxFwF2l/BcoZiGoseVjKwHO7WCpDKJvs68kreSPSqYg1zU3dPkZguLwrCstesHl9RozyrdL8UTxt+M3+jFYUFIvrYwiWZJRnt0ru2CjaWyZ8a06OUFbI6ShWWoxEALzYKBIpbJEOxcseN3aZorUxSPlHAsvrZu7Hw0X/LZsr7JxdQl1Ym554Bo+cGc8Uv8/Eib5EOQSRVIgqFTYh9EPSqUg5nuGi2Dv+w3vebG36T30F/4RTw6xJ4qebeLOM6M/SAPfThaaIba/lY8+qya0Rc5lhioQwnIgt9mw9IwH3+sMDxYzr+FwWTPW/ykCBYGTQAy3CTjlvGaP16CtLlZx9TIryC34Eyzia/vymemqvJ/9tY7TDQnUF7cTePQSh/sj4UsdCCYpV9MoBQE7oIY025G9Eob7WJDwtw+a5","id":"PW7476291114"}],"vault":{"s":"jmgXWvU+7zelzxyFjtgh2Q==","i":"QSIEhcMOo7XjeVyt","c":"9ZkNhsbUjZsLPU2W2uN7x4cTSqNIOHmODYZ1wr5ZiYWF0HgftCfD7xAfBm5AqGBM/xpmLlyO0s2cKzezMU4FUPkWhUlABNStUUGCAOoke+dQcQkfMXkh5L/neYQBV8dHyLDBaHCrER3dChgyrv69kjYJfnDOoZzhBAe+7H5QllzvSRTGIHn+bXJDtL+qM58T5jVpvDK/abuSAPfgwp5ozaufT3Hpy9y8zJ07BeiMb0DYvsHyiWR6M49Pm54r5pOFHT5bFUYIfkfj4TGY3eqv4W1cbtpn2pTD4lcXO9RNXGxtP/lTnm3lAVFupSCRmODVcbynGm9u7lJoMsc/TWEit8TuxIvrjC8ps+y1nD/HGO5MZiylTJhQbFhCIH9W9HQupJyfGSBsjdUfZzN5N5obF0UES9+u8x0JAWDkR0TuCbc3cmoJXJgIcgFFgNAKF/2C5r6Ywwn1N0Jm82f3k6975BmNo+3FgPJgoW1+mOJ6NYgNsz0SBbyqBVpprBU4vKzD99hEQsO3vqHuGSzU4idpPQEYcK8sv2hPDtPPeSiIrw2rg1OwSVq0KxR4WbvHAGTPY1ZvsVcKlPHZT/67CODgLQmdnl81fBUC+opXx7I91eIMWGoEwh5rYyKUxg=="}}</script><script id="app-script">
+(function () {
+  /* ---------- state ---------- */
+  var S = JSON.parse(document.getElementById("state").textContent);
+  var root = document.getElementById("root");
+  var DEF_STAGES = ["Label created", "Picked up", "In transit", "Out for delivery", "Delivered"];
+  var DEF_SPECIAL = { onhold: "On hold", exception: "Delivery exception", returned: "Returned to sender" };
+  var STAGES = DEF_STAGES.slice(), SPECIAL = {};
+  var EVENT_TEXT = ["Shipment information received", "Picked up from sender", "In transit", "Out for delivery", "Delivered"];
+  var STEPS = [], IDS = [];
+  function idx(s) { return IDS.indexOf(String(s)); }
+  function applyLabels() {
+    var l = S.settings.labels || {}, ls = l.stages || [], lp = l.special || {};
+    var st = S.settings.steps;
+    if (!st || !st.length) st = DEF_STAGES.map(function (d, i) { return { id: String(i), name: ls[i] || d }; });
+    STEPS = st; STAGES = st.map(function (s) { return s.name; }); IDS = st.map(function (s) { return s.id; });
+    SPECIAL = {}; Object.keys(DEF_SPECIAL).forEach(function (k) { SPECIAL[k] = lp[k] || DEF_SPECIAL[k]; });
+  }
+  applyLabels();
+  var DEFMEAN = {
+    "0": "We have your shipment details. The parcel has not reached us yet.",
+    "1": "Our rider or depot has collected your parcel.",
+    "2": "Your parcel is moving between our hubs toward your city.",
+    "3": "Your parcel is on a vehicle and should arrive today.",
+    "4": "Your parcel has been handed over.",
+    onhold: "Your package is on hold. Please contact us for more information.",
+    exception: "Something delayed your delivery. Check the latest update below.",
+    returned: "Your package is being returned to the sender."
+  };
+  function defMean(s) { return DEFMEAN[String(s)] || ""; }
+  var SERVICES = ["Standard", "Express", "Same-day"];
+  var view = "home", ORDERS = null, PASS = null, dirty = false, changed = {}, editing = null, draft = null;
+  var notice = null, lookupResult = "", lookupVal = "";
+  var oldPub = {};
+  S.pub.forEach(function (r) { oldPub[r.id] = r; });
+
+  /* ---------- helpers ---------- */
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function fmt(iso) {
+    var d = new Date(iso);
+    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) + ", " + d.toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit", hour12: true });
+  }
+  function toLocalInput(iso) { var d = new Date(iso); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); }
+  function validLocal(v) { return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(v) && !isNaN(new Date(v).getTime()); }
+  function norm(id) { return String(id).toUpperCase().replace(/[^A-Z0-9]/g, ""); }
+  function store(k, v) { try { if (v == null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch (e) {} }
+  function load(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+  function newTn() {
+    var a = crypto.getRandomValues(new Uint32Array(3)), d = "";
+    for (var i = 0; i < 3; i++) d += String(a[i] % 10000).padStart(4, "0");
+    return "PW" + d.slice(0, 10);
+  }
+  var LOGO = '<svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#12385f"/><path d="M6 16c4-6 8-6 14 0s10 6 14 0" fill="none" stroke="#2bd0f0" stroke-width="3.4" stroke-linecap="round"/><path d="M6 26c4-6 8-6 14 0s10 6 14 0" fill="none" stroke="#ffffff" stroke-width="3.4" stroke-linecap="round"/></svg>';
+
+  /* ---------- encryption (shipment details are locked in the published page) ---------- */
+  var te = new TextEncoder(), td = new TextDecoder();
+  function b64(buf) { var a = new Uint8Array(buf), s = ""; for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s); }
+  function unb64(s) { var b = atob(s), a = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
+  async function deriveKey(secret, salt) {
+    var m = await crypto.subtle.importKey("raw", te.encode(secret), "PBKDF2", false, ["deriveKey"]);
+    return crypto.subtle.deriveKey({ name: "PBKDF2", salt: salt, iterations: 100000, hash: "SHA-256" }, m, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+  }
+  async function seal(obj, secret) {
+    var salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+    var k = await deriveKey(secret, salt);
+    var ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, k, te.encode(JSON.stringify(obj)));
+    return { s: b64(salt), i: b64(iv), c: b64(ct) };
+  }
+  async function unseal(rec, secret) {
+    var k = await deriveKey(secret, unb64(rec.s));
+    var pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(rec.i) }, k, unb64(rec.c));
+    return JSON.parse(td.decode(pt));
+  }
+
+  /* ---------- server: saving and publishing ---------- */
+  var NEEDSETUP = false;
+  async function api(path, body) {
+    try {
+      var r = await fetch("/api/" + path, body ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) } : { cache: "no-store" });
+      var j = null; try { j = await r.json(); } catch (e) {}
+      return { ok: r.ok, status: r.status, data: j || {} };
+    } catch (e) { return { ok: false, status: 0, data: {} }; }
+  }
+  async function loadPublic() {
+    var r = await api("public");
+    if (!r.ok) return;
+    NEEDSETUP = !!r.data.setup;
+    if (PASS) return;
+    if (r.data.pub) S.pub = r.data.pub;
+    if (r.data.settings) { S.settings = r.data.settings; applyLabels(); }
+  }
+  function publicOf(o) {
+    return { id: o.id, recipient: o.recipient, origin: o.origin, destination: o.destination, service: o.service, weight: o.weight, contents: o.contents, status: o.status, meaning: o.meaning, eta: o.eta, signedBy: o.signedBy, events: o.events };
+  }
+  async function saveNow() {
+    var r = await api("save", { password: PASS, orders: ORDERS, settings: S.settings });
+    return r.ok;
+  }
+  async function persist() {
+    if (await saveNow()) return;
+    notice = { kind: "err", text: "Could not save to the server. Check your connection and try again." }; render();
+  }
+  async function publishAll() {
+    notice = { kind: "warn", text: "Publishing. This can take a few seconds." }; render();
+    try {
+      if (!(await saveNow())) throw new Error("save");
+      var pub = [];
+      for (var i = 0; i < ORDERS.length; i++) { var rec = await seal(publicOf(ORDERS[i]), ORDERS[i].id); rec.id = ORDERS[i].id; pub.push(rec); }
+      var r = await api("publish", { password: PASS, pub: pub, settings: S.settings });
+      if (!r.ok) throw new Error("publish");
+      S.pub = pub; dirty = false;
+      notice = { kind: "ok", text: "Published. Customers can now see your latest shipments." };
+    } catch (e) {
+      notice = { kind: "err", text: "Could not publish. Your changes are saved, so try again." };
+    }
+    render();
+  }
+  async function changePass() {
+    readSettings();
+    var g = function (id) { var n = document.getElementById(id); return n ? n.value : ""; };
+    var cur = g("pw_cur"), nw = g("pw_new"), rep2 = g("pw_rep");
+    if (nw.length < 8) notice = { kind: "err", text: "Use at least 8 characters for the new password." };
+    else if (nw !== rep2) notice = { kind: "err", text: "The two new passwords do not match." };
+    else {
+      var r = await api("password", { password: cur, next: nw });
+      if (r.ok) { PASS = nw; store("trk_pass", PASS); notice = { kind: "ok", text: "Administrator password changed." }; }
+      else notice = { kind: "err", text: r.status === 401 ? "Current password is not right." : "Could not change the password. Try again." };
+    }
+    render(); window.scrollTo(0, 0);
+  }
+
+  /* ---------- shared chrome ---------- */
+  function topHtml() {
+    return '<div class="top gut"><div class="in"><button class="logo" type="button" data-act="home" aria-label="Prime Wave Delivery home">' + LOGO +
+      '<span class="nm"><b>Prime Wave</b><small>DELIVERY</small></span></button>' +
+      '<nav class="nav"><button type="button" data-act="home">Track</button><button type="button" data-act="help">Help</button></nav></div></div>';
+  }
+  function noticeHtml() { return notice ? '<div class="' + (notice.kind === "err" ? "err" : notice.kind === "warn" ? "warnbox" : "ok") + '">' + esc(notice.text) + "</div>" : ""; }
+  function page(inner) { return topHtml() + '<main class="main gut">' + inner + "</main>"; }
+
+  /* ---------- customer view ---------- */
+  function homeHtml() {
+    return page(
+      '<section><h1>Track your package</h1><p class="lead">Enter your Prime Wave tracking ID. It starts with PW. You can track up to 10 at once.</p></section>' +
+      '<section class="card"><form data-form="lookup" class="stack" novalidate>' +
+      '<label for="tid">Tracking ID<input id="tid" autocomplete="off" autocapitalize="characters" placeholder="e.g. PW4821077305" value="' + esc(lookupVal) + '"></label>' +
+      '<div><button class="btn" type="submit" style="width:100%">Track</button></div>' +
+      '<p class="hint">Separate several numbers with commas or spaces.</p></form></section>' +
+      '<div id="result" aria-live="polite" class="stack">' + lookupResult + "</div>" +
+      '<section class="card" id="help"><h3>Need help with a delivery?</h3>' +
+      '<p style="margin:0 0 10px">For a late, missing or damaged package, contact us and have your tracking ID ready.</p>' +
+      '<p style="margin:0">' + (S.settings.phone ? "<b>Phone:</b> " + esc(S.settings.phone) + "<br>" : "") + "<b>Email:</b> " + esc(S.settings.email) + "</p></section>" +
+      '<div class="foot"><button type="button" data-act="staff" aria-label="Prime Wave Delivery">©</button> Prime Wave Delivery</div>');
+  }
+  var ARROW = '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 12h9m-3.5-3.5L16.5 12 13 15.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function stepRow(kind, title, lines) {
+    return '<li class="' + kind + '"><span class="rail">' + (kind === "now" ? '<span class="big">' + ARROW + "</span>" : '<span class="dot"></span>') + '</span><span class="txt"><span class="t">' + esc(title) + "</span>" +
+      (lines || []).map(function (l) { return '<span class="s' + (l.i ? " i" : "") + '">' + esc(l.t) + "</span>"; }).join("") + "</span></li>";
+  }
+  function resultHtml(o) {
+    var special = SPECIAL[o.status];
+    var stage = special ? -1 : Math.max(0, idx(o.status)), last = STAGES.length - 1;
+    var cur = special || STAGES[stage];
+    var cls = special ? (o.status === "onhold" ? "warn" : "bad") : "";
+    var meaning = o.meaning || defMean(o.status);
+    var rows = stepRow("done", "From", o.origin ? [{ t: o.origin }] : []);
+    if (special) rows += stepRow("now", special);
+    else STAGES.forEach(function (s, i) { rows += stepRow(i < stage ? "done" : i === stage ? "now" : "todo", s); });
+    rows += stepRow(stage === last ? "done" : "todo", "To", [{ t: o.destination }, { t: stage === last ? "Delivered" : "Scheduled delivery date", i: true }, { t: o.eta || "Pending" }]);
+    var events = o.events.map(function (e) {
+      return "<li><time>" + fmt(e.when) + "</time><div>" + esc(e.text) + (e.where ? '<div class="where">' + esc(e.where) + "</div>" : "") + "</div></li>";
+    }).join("");
+    var pod = stage === last && o.signedBy ? '<p style="margin:16px 0 0;font-size:14px"><b>Proof of delivery:</b> signed for by ' + esc(o.signedBy) + "</p>" : "";
+    return '<section class="card rise"><div class="lab first">' + (stage === last ? "Delivered" : "Scheduled delivery date") + '</div><div class="bigv">' + esc(o.eta || "Pending") + "</div>" +
+      '<div class="lab">Delivery status</div><div class="statv ' + cls + '">' + esc(cur) + "</div>" +
+      '<div class="lab">Tracking ID</div><div class="tn statv">' + esc(o.id) + '</div><p class="sub">Package for ' + esc(o.recipient) + "</p>" +
+      (meaning ? '<p class="meaning">' + esc(meaning) + "</p>" : "") + '<ol class="vs">' + rows + "</ol>" +
+      '<dl class="meta"><div><dt>Service</dt><dd>' + esc(o.service) + "</dd></div><div><dt>Weight</dt><dd>" + esc(o.weight || "-") + "</dd></div><div><dt>Contents</dt><dd>" + esc(o.contents || "-") + "</dd></div></dl>" + pod +
+      (events ? '<h3 style="margin-top:22px">Travel history</h3><ul class="tl">' + events + "</ul>" : "") + "</section>";
+  }
+  async function doLookup() {
+    var raw = document.getElementById("tid").value; lookupVal = raw;
+    var ids = []; raw.split(/[\s,;]+/).forEach(function (x) { var n = norm(x); if (n && ids.indexOf(n) < 0) ids.push(n); });
+    var out = document.getElementById("result");
+    if (!ids.length) { lookupResult = '<div class="err">Enter at least one tracking number.</div>'; out.innerHTML = lookupResult; return; }
+    ids = ids.slice(0, 10);
+    if (!PASS) await loadPublic();
+    out.innerHTML = '<p class="hint">Looking up your package...</p>';
+    var html = "";
+    for (var i = 0; i < ids.length; i++) {
+      var rec = S.pub.filter(function (r) { return r.id === ids[i]; })[0], found = null;
+      if (rec) { try { found = await unseal(rec, ids[i]); } catch (e) {} }
+      html += found ? resultHtml(found) : '<div class="err">We could not find tracking number ' + esc(ids[i]) + ". Check the number and try again.</div>";
+    }
+    lookupResult = html; out.innerHTML = html;
+  }
+
+  /* ---------- owner: unlock ---------- */
+  function gateHtml() {
+    var first = NEEDSETUP && !S.vault;
+    return page('<section><h1>' + (first ? "Set up access" : "Sign in") + '</h1><p class="lead">' +
+      (first ? "Choose an administrator password. You can change it later in Settings." : "Enter your administrator password to manage shipments.") + "</p></section>" +
+      '<section class="card"><form data-form="gate" class="stack" novalidate>' +
+      '<label for="pass1">Password<input id="pass1" type="password" autocomplete="current-password"></label>' +
+      (first ? '<label for="pass2">Repeat password<input id="pass2" type="password" autocomplete="new-password"></label>' : "") + noticeHtml() +
+      '<div class="bar"><button class="btn" type="submit">' + (first ? "Create password" : "Sign in") + '</button><button class="btn ghost" type="button" data-act="home">Back</button></div></form></section>');
+  }
+  async function doGate() {
+    var p1 = document.getElementById("pass1").value, p2 = document.getElementById("pass2");
+    var first = NEEDSETUP && !S.vault, r;
+    if (first) {
+      if (p1.length < 8) { notice = { kind: "err", text: "Use at least 8 characters." }; render(); return; }
+      if (!p2 || p1 !== p2.value) { notice = { kind: "err", text: "The two passwords do not match." }; render(); return; }
+    }
+    if (NEEDSETUP) {
+      var orders = [];
+      if (S.vault) { try { orders = (await unseal(S.vault, p1)).orders; } catch (e) { notice = { kind: "err", text: "That password is not right." }; render(); return; } }
+      r = await api("setup", { password: p1, orders: orders, settings: S.settings });
+      if (r.ok) { NEEDSETUP = false; ORDERS = orders; dirty = orders.length > 0; }
+    } else {
+      r = await api("login", { password: p1 });
+      if (r.ok) { ORDERS = r.data.orders || []; if (r.data.settings) { S.settings = r.data.settings; applyLabels(); } dirty = !!r.data.dirty; }
+    }
+    if (!r.ok) {
+      notice = { kind: "err", text: r.status === 401 ? "That password is not right." : r.status === 0 ? "Could not reach the server. Check your connection." : "Something went wrong. Try again." };
+      render(); return;
+    }
+    PASS = p1; notice = null; view = "manage"; store("trk_pass", PASS); store("trk_mgr", "1"); render();
+  }
+
+  /* ---------- owner: manage ---------- */
+  function pillCls(o) {
+    if (SPECIAL[o.status]) return o.status === "onhold" ? "pill transit" : "pill bad";
+    var s = idx(o.status);
+    return s > 0 && s < STAGES.length - 1 ? "pill transit" : "pill";
+  }
+  function statusOpts(cur) {
+    cur = String(cur);
+    function opt(v, t) { return '<option value="' + esc(v) + '"' + (cur === String(v) ? " selected" : "") + ">" + esc(t) + "</option>"; }
+    return STAGES.map(function (t, i) { return opt(IDS[i], t); }).join("") + opt("onhold", SPECIAL.onhold) + opt("exception", SPECIAL.exception) + opt("returned", SPECIAL.returned);
+  }
+  function quickStatus(i, v) {
+    var o = ORDERS[i];
+    if (!o || String(o.status) === String(v)) return;
+    var old = o.status; o.status = v;
+    if (!o.meaning || o.meaning === defMean(old)) o.meaning = "";
+    o.events.unshift({ when: new Date().toISOString(), text: SPECIAL[v] || STAGES[idx(v)] || "Status updated", where: "" });
+    dirty = true; notice = { kind: "ok", text: "Status updated. Press Publish to customers." };
+    persist(); render();
+  }
+  function manageHtml() {
+    if (editing === "settings") return settingsHtml();
+    if (editing) return formHtml();
+    var list = ORDERS.length ? '<ul class="olist">' + ORDERS.map(function (o, i) {
+      return '<li><div class="who"><b class="tn">' + esc(o.id) + "</b><span>" + esc(o.recipient) + " · " + esc(o.destination) + "</span></div>" +
+        '<select class="' + pillCls(o) + ' qs" data-qs="' + i + '" aria-label="Status for ' + esc(o.id) + '">' + statusOpts(o.status) + "</select>" +
+        '<button class="btn ghost small" type="button" data-act="edit" data-i="' + i + '">Edit</button></li>';
+    }).join("") + "</ul>" : '<p class="hint">No shipments yet. Add your first shipment, or load two examples to see how it works.</p>';
+    return page('<section><h1>Shipments</h1></section>' + noticeHtml() +
+      (dirty ? '<div class="warnbox">You have changes customers cannot see yet. Press Publish to customers.</div>' : "") +
+      '<div class="bar"><button class="btn" type="button" data-act="new">New shipment</button>' +
+      '<button class="btn" type="button" data-act="publish"' + (dirty ? "" : " disabled") + '>Publish to customers</button>' +
+      '<span class="grow"></span><button class="btn ghost small" type="button" data-act="settings">Settings</button></div>' +
+      '<section class="card">' + list + (ORDERS.length ? "" : '<div class="bar" style="margin-top:14px"><button class="btn ghost small" type="button" data-act="samples">Add 2 example shipments</button></div>') + "</section>" +
+      '<div class="bar"><button class="btn ghost small" type="button" data-act="home">View customer page</button><button class="link" type="button" data-act="lock">Sign out</button></div>');
+  }
+  function settingsHtml() {
+    var d = draft;
+    function inp(id, label, val) { return '<label for="' + id + '">' + label + '<input id="' + id + '" value="' + esc(val) + '"></label>'; }
+    var rows = d.steps.map(function (s, i) {
+      return '<div class="srow"><input id="s_st' + i + '" value="' + esc(s.name) + '" aria-label="Step ' + (i + 1) + ' name">' +
+        '<button class="btn ghost small" type="button" data-act="up" data-i="' + i + '" aria-label="Move up"' + (i === 0 ? " disabled" : "") + '>↑</button>' +
+        '<button class="btn ghost small" type="button" data-act="down" data-i="' + i + '" aria-label="Move down"' + (i === d.steps.length - 1 ? " disabled" : "") + '>↓</button>' +
+        '<button class="btn danger small" type="button" data-act="rmstep" data-i="' + i + '"' + (d.steps.length <= 2 ? " disabled" : "") + '>Delete</button></div>';
+    }).join("");
+    return page('<section><h1>Settings</h1></section>' + noticeHtml() +
+      '<section class="card"><form data-form="settings" class="stack" novalidate>' +
+      '<h3>Status steps</h3><p class="hint">These are the steps customers see, in order. The last step counts as delivered. Rename, move or delete any step, then press Save.</p>' +
+      '<div class="stack" style="gap:10px">' + rows + "</div>" +
+      '<div><button class="btn ghost small" type="button" data-act="addstep">Add a step</button></div>' +
+      '<h3 style="margin-top:8px">Other statuses</h3>' +
+      inp("s_sp_onhold", "Hold status", d.special.onhold) + inp("s_sp_exception", "Problem status", d.special.exception) + inp("s_sp_returned", "Return status", d.special.returned) +
+      '<h3 style="margin-top:8px">Administrator password</h3><label for="pw_cur">Current password<input id="pw_cur" type="password" autocomplete="current-password"></label><label for="pw_new">New password<input id="pw_new" type="password" autocomplete="new-password"></label><label for="pw_rep">Repeat new password<input id="pw_rep" type="password" autocomplete="new-password"></label><div><button class="btn ghost small" type="button" data-act="chpass">Change password</button></div>' +
+      '<h3 style="margin-top:8px">Contact details</h3>' + inp("s_ph", "Phone number", d.phone) + inp("s_em", "Support email", d.email) +
+      '<div class="bar"><button class="btn" type="submit">Save settings</button><button class="btn ghost" type="button" data-act="cancel">Cancel</button></div></form></section>');
+  }
+  function readSettings() {
+    var g = function (id) { var n = document.getElementById(id); return n ? n.value.trim() : ""; };
+    if (!draft || !document.getElementById("s_ph")) return;
+    draft.phone = g("s_ph"); draft.email = g("s_em");
+    draft.steps.forEach(function (s, i) { s.name = g("s_st" + i); });
+    draft.special = { onhold: g("s_sp_onhold"), exception: g("s_sp_exception"), returned: g("s_sp_returned") };
+  }
+  function saveSettings() {
+    readSettings();
+    if (draft.steps.some(function (s) { return !s.name; })) { notice = { kind: "err", text: "Every step needs a name." }; render(); return; }
+    var oldIds = IDS.slice(), newIds = draft.steps.map(function (s) { return s.id; }), moved = 0;
+    ORDERS.forEach(function (o) {
+      var k = oldIds.indexOf(String(o.status));
+      if (SPECIAL[o.status] || k < 0 || newIds.indexOf(String(o.status)) >= 0) return;
+      var target = null, j;
+      for (j = k + 1; j < oldIds.length && !target; j++) if (newIds.indexOf(oldIds[j]) >= 0) target = oldIds[j];
+      for (j = k - 1; j >= 0 && !target; j--) if (newIds.indexOf(oldIds[j]) >= 0) target = oldIds[j];
+      o.status = target || newIds[0]; changed[o.id] = true; moved++;
+    });
+    S.settings = {
+      phone: draft.phone, email: draft.email,
+      steps: draft.steps.map(function (s) { return { id: s.id, name: s.name }; }),
+      labels: { special: { onhold: draft.special.onhold || DEF_SPECIAL.onhold, exception: draft.special.exception || DEF_SPECIAL.exception, returned: draft.special.returned || DEF_SPECIAL.returned } }
+    };
+    applyLabels();
+    dirty = true; editing = null; draft = null; persist();
+    notice = { kind: "ok", text: "Settings saved." + (moved ? " " + moved + " shipment" + (moved > 1 ? "s were" : " was") + " moved to a nearby step." : "") + " Press Publish to customers." };
+    render();
+  }
+  function formHtml() {
+    var e = editing, st = String(e.status);
+    function opt(v, t) { return '<option value="' + v + '"' + (st === String(v) ? " selected" : "") + ">" + t + "</option>"; }
+    var opts = STAGES.map(function (t, i) { return opt(IDS[i], esc(t)); }).join("") + opt("onhold", esc(SPECIAL.onhold)) + opt("exception", esc(SPECIAL.exception)) + opt("returned", esc(SPECIAL.returned));
+    var svc = SERVICES.map(function (s) { return '<option' + (e.service === s ? " selected" : "") + ">" + s + "</option>"; }).join("");
+    var evs = e.events.length ? '<div class="evs">' + e.events.map(function (v, i) {
+      return '<div class="ev"><label for="ev_d_' + i + '">Date and time<input id="ev_d_' + i + '" type="datetime-local" value="' + esc(v.dl) + '"></label>' +
+        '<label for="ev_w_' + i + '">Place (optional)<input id="ev_w_' + i + '" value="' + esc(v.where) + '"></label>' +
+        '<label class="full" for="ev_t_' + i + '">Update<input id="ev_t_' + i + '" value="' + esc(v.text) + '" placeholder="e.g. Arrived at Abuja hub"></label>' +
+        '<div class="row full"><button class="btn ghost small" type="button" data-act="rmev" data-i="' + i + '">Remove</button></div></div>';
+    }).join("") + "</div>" : '<p class="hint">No updates yet.</p>';
+    return page('<section><h1 class="tn">' + esc(e.id) + '</h1><p class="lead">' + (e.isNew ? "New tracking number. Give this to the customer." : "Shipment details") + "</p></section>" + noticeHtml() +
+      '<section class="card"><form data-form="order" class="stack" novalidate><div class="grid">' +
+      '<label for="f_rec">Recipient name<input id="f_rec" value="' + esc(e.recipient) + '"></label>' +
+      '<label for="f_status">Status<select id="f_status">' + opts + "</select></label>" +
+      '<label class="full" for="f_mean">What this status means (customers see this)<textarea id="f_mean" placeholder="Write a short note for the customer">' + esc(e.meaning) + "</textarea></label>" +
+      '<p class="hint full">To rename, move or delete statuses, press Settings on the shipments list.</p>' +
+      '<label for="f_orig">From (city)<input id="f_orig" value="' + esc(e.origin) + '" placeholder="e.g. Ikeja, Lagos"></label>' +
+      '<label for="f_dest">To (address or city)<input id="f_dest" value="' + esc(e.destination) + '" placeholder="e.g. Wuse 2, Abuja"></label>' +
+      '<label for="f_svc">Service<select id="f_svc">' + svc + "</select></label>" +
+      '<label for="f_wt">Weight<input id="f_wt" value="' + esc(e.weight) + '" placeholder="e.g. 2.4 kg"></label>' +
+      '<label for="f_con">Contents<input id="f_con" value="' + esc(e.contents) + '" placeholder="e.g. Clothing"></label>' +
+      '<label for="f_eta">Expected delivery<input id="f_eta" value="' + esc(e.eta) + '" placeholder="e.g. Thursday, Nov 19"></label>' +
+      '<label class="full" for="f_sig">Signed for by (when delivered)<input id="f_sig" value="' + esc(e.signedBy) + '"></label></div>' +
+      '<div><h3>Travel history</h3>' + evs + '<div style="margin-top:12px"><button class="btn ghost small" type="button" data-act="addev">Add an update</button></div>' +
+      '<p class="hint" style="margin-top:10px">Set any date and time you like. Customers see updates newest first.</p></div>' +
+      '<div class="bar"><button class="btn" type="submit">Save shipment</button><button class="btn ghost" type="button" data-act="cancel">Cancel</button>' +
+      (e.isNew ? "" : '<span class="grow"></span><button class="btn danger small" type="button" data-act="delete">' + (e.confirmDelete ? "Tap again to delete" : "Delete shipment") + "</button>") + "</div></form></section>");
+  }
+  function readForm() {
+    var g = function (id) { var n = document.getElementById(id); return n ? n.value : ""; };
+    if (!document.getElementById("f_rec")) return;
+    editing.recipient = g("f_rec").trim(); editing.status = g("f_status"); editing.meaning = g("f_mean").trim(); editing.origin = g("f_orig").trim();
+    editing.destination = g("f_dest").trim(); editing.service = g("f_svc"); editing.weight = g("f_wt").trim();
+    editing.contents = g("f_con").trim(); editing.eta = g("f_eta").trim(); editing.signedBy = g("f_sig").trim();
+    editing.events.forEach(function (v, i) { v.dl = g("ev_d_" + i); v.text = g("ev_t_" + i).trim(); v.where = g("ev_w_" + i).trim(); });
+  }
+  function saveOrder() {
+    readForm();
+    var e = editing;
+    var rows = e.events.filter(function (v) { return v.text; });
+    var problem = !e.recipient ? "Enter the recipient's name." : !e.destination ? "Enter where the package is going." :
+      rows.some(function (v) { return !validLocal(v.dl); }) ? "Enter a valid date and time for each update." : "";
+    if (problem) { notice = { kind: "err", text: problem }; render(); return; }
+    var status = SPECIAL[e.status] ? e.status : String(e.status);
+    var events = rows.map(function (v) { return { when: new Date(v.dl).toISOString(), text: v.text, where: v.where }; });
+    var prev = e.isNew ? null : ORDERS.filter(function (o) { return o.id === e.id; })[0];
+    var now = new Date().toISOString();
+    if (e.isNew && !events.length) events.push({ when: now, text: EVENT_TEXT[0], where: e.origin });
+    else if (prev && !e.added && String(prev.status) !== String(status)) events.push({ when: now, text: SPECIAL[status] || STAGES[idx(status)] || "Status updated", where: "" });
+    events.sort(function (a, b) { return new Date(b.when) - new Date(a.when); });
+    var o = { id: e.id, recipient: e.recipient, origin: e.origin, destination: e.destination, service: e.service, weight: e.weight, contents: e.contents, status: status, meaning: e.meaning, eta: e.eta, signedBy: e.signedBy, events: events };
+    if (e.isNew) ORDERS.unshift(o); else ORDERS[ORDERS.indexOf(prev)] = o;
+    dirty = true; editing = null; persist();
+    notice = { kind: "ok", text: "Saved. Press Publish to customers when you are ready." };
+    render();
+  }
+  function blank() {
+    var id; do { id = newTn(); } while (ORDERS.some(function (o) { return o.id === id; }));
+    return { isNew: true, id: id, recipient: "", origin: "", destination: "", service: "Standard", weight: "", contents: "", status: IDS[0], meaning: defMean(IDS[0]), eta: "", signedBy: "", events: [], added: 0 };
+  }
+  function addSamples() {
+    function ago(h) { return new Date(Date.now() - h * 3600000).toISOString(); }
+    var s = [
+      { id: "PW4821077305", recipient: "Amaka O.", origin: "Ikeja, Lagos", destination: "Lekki Phase 1, Lagos", service: "Same-day", weight: "1.8 kg", contents: "Clothing", status: IDS[Math.min(3, IDS.length - 1)], meaning: "", eta: "Today, before 6 PM", signedBy: "",
+        events: [{ when: ago(2), text: "Out for delivery", where: "Lekki, Lagos" }, { when: ago(9), text: "Arrived at delivery hub", where: "Ajah, Lagos" }, { when: ago(20), text: "Picked up from sender", where: "Ikeja, Lagos" }, { when: ago(22), text: "Shipment information received", where: "Ikeja, Lagos" }] },
+      { id: "PW7710295564", recipient: "Tunde A.", origin: "Ikeja, Lagos", destination: "Wuse 2, Abuja", service: "Express", weight: "3.2 kg", contents: "Shoes", status: IDS[IDS.length - 1], meaning: "", eta: "Yesterday, 2:15 PM", signedBy: "T. Adeyemi",
+        events: [{ when: ago(26), text: "Delivered", where: "Abuja" }, { when: ago(38), text: "Out for delivery", where: "Abuja" }, { when: ago(60), text: "In transit", where: "Lagos to Abuja" }, { when: ago(80), text: "Shipment information received", where: "Ikeja, Lagos" }] }
+    ];
+    s.forEach(function (o) { ORDERS.push(o); changed[o.id] = true; });
+    dirty = true;
+    notice = { kind: "warn", text: "Example shipments added. Delete them before you publish for real customers." };
+  }
+
+  /* ---------- render + events ---------- */
+  function render() {
+    root.innerHTML = view === "home" ? homeHtml() : view === "gate" ? gateHtml() : manageHtml();
+  }
+  function goto(id) { var n = document.getElementById(id); if (n) n.scrollIntoView({ behavior: "smooth", block: "start" }); }
+  root.addEventListener("change", function (ev) {
+    var qs = ev.target.getAttribute("data-qs");
+    if (qs !== null) { quickStatus(Number(qs), ev.target.value); return; }
+    if (ev.target.id !== "f_status" || !editing) return;
+    var ta = document.getElementById("f_mean"), old = editing.status, nw = ev.target.value;
+    if (ta && (!ta.value.trim() || ta.value.trim() === defMean(old))) ta.value = defMean(nw);
+    editing.status = nw;
+  });
+  root.addEventListener("click", function (ev) {
+    var b = ev.target.closest("[data-act]");
+    if (!b) return;
+    var a = b.getAttribute("data-act"), i = Number(b.getAttribute("data-i"));
+    if (a === "home") { notice = null; editing = null; view = "home"; render(); window.scrollTo(0, 0); return; }
+    if (a === "help") { if (view !== "home") { view = "home"; render(); } goto(a); return; }
+    if (a === "staff") { notice = null; view = ORDERS ? "manage" : "gate"; render(); window.scrollTo(0, 0); return; }
+    if (a === "lock") { PASS = null; ORDERS = null; store("trk_pass", null); store("trk_mgr", null); notice = null; view = "home"; render(); return; }
+    if (a === "new") { notice = null; editing = blank(); render(); window.scrollTo(0, 0); return; }
+    if (a === "edit") {
+      var o = ORDERS[i]; notice = null;
+      editing = { isNew: false, id: o.id, recipient: o.recipient, origin: o.origin, destination: o.destination, service: o.service, weight: o.weight, contents: o.contents, status: String(o.status), meaning: o.meaning || defMean(o.status), eta: o.eta, signedBy: o.signedBy, added: 0,
+        events: o.events.map(function (v) { return { dl: toLocalInput(v.when), text: v.text, where: v.where || "" }; }) };
+      render(); window.scrollTo(0, 0); return;
+    }
+    if (a === "addev") { readForm(); editing.events.unshift({ dl: toLocalInput(new Date().toISOString()), text: "", where: "" }); editing.added = (editing.added || 0) + 1; render(); return; }
+    if (a === "rmev") { readForm(); editing.events.splice(i, 1); render(); return; }
+    if (a === "cancel") { notice = null; editing = null; render(); return; }
+    if (a === "settings") {
+      notice = null; editing = "settings";
+      draft = { phone: S.settings.phone || "", email: S.settings.email || "", steps: STEPS.map(function (s) { return { id: s.id, name: s.name }; }), special: { onhold: SPECIAL.onhold, exception: SPECIAL.exception, returned: SPECIAL.returned } };
+      render(); window.scrollTo(0, 0); return;
+    }
+    if (a === "up" || a === "down") {
+      readSettings(); var j = a === "up" ? i - 1 : i + 1;
+      if (j >= 0 && j < draft.steps.length) { var tmp = draft.steps[i]; draft.steps[i] = draft.steps[j]; draft.steps[j] = tmp; }
+      render(); return;
+    }
+    if (a === "rmstep") { readSettings(); if (draft.steps.length > 2) draft.steps.splice(i, 1); render(); return; }
+    if (a === "addstep") { readSettings(); draft.steps.splice(draft.steps.length - 1, 0, { id: "n" + Date.now().toString(36) + Math.floor(Math.random() * 1000), name: "New step" }); render(); return; }
+    if (a === "chpass") { changePass(); return; }
+    if (a === "samples") { addSamples(); persist(); render(); return; }
+    if (a === "publish") { publishAll(); return; }
+    if (a === "delete") {
+      readForm();
+      if (!editing.confirmDelete) { editing.confirmDelete = true; render(); return; }
+      ORDERS = ORDERS.filter(function (o) { return o.id !== editing.id; });
+      dirty = true; editing = null; persist();
+      notice = { kind: "ok", text: "Shipment deleted. Press Publish to customers to remove it from the customer page." };
+      render();
+    }
+  });
+  root.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var f = ev.target.getAttribute("data-form");
+    if (f === "lookup") doLookup();
+    else if (f === "gate") doGate();
+    else if (f === "order") saveOrder();
+    else if (f === "settings") saveSettings();
+  });
+
+  /* ---------- start ---------- */
+  render();
+  loadPublic().then(function () {
+    var t = document.getElementById("tid");
+    if (view === "home" && t && !t.value && !lookupResult) render();
+  });
+  var sp = load("trk_pass");
+  if (sp && load("trk_mgr") === "1") {
+    api("login", { password: sp }).then(function (r) {
+      if (!r.ok) { if (r.status === 401) { store("trk_pass", null); store("trk_mgr", null); } return; }
+      ORDERS = r.data.orders || []; PASS = sp; dirty = !!r.data.dirty;
+      if (r.data.settings) { S.settings = r.data.settings; applyLabels(); }
+      view = "manage"; render();
+    });
+  }
+})();
+</script></body></html>
