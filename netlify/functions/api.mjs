@@ -13,7 +13,7 @@ const same = (rec, pw) => {
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export default async (req) => {
-  const st = getStore("primewave");
+  const st = getStore({ name: "primewave", consistency: "strong" });
   const route = new URL(req.url).pathname.replace(/^\/api\/?/, "");
   const env = process.env.ADMIN_PASSWORD || "";
   let auth = await st.get("auth", { type: "json" });
